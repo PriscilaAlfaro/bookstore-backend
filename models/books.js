@@ -1,17 +1,22 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 // collection name Books
 const Books = new mongoose.Schema({
-  bookID: Number,
   title: String,
-  authors: String,
-  average_rating: Number,
+  author: String,
+  price: Number,
+  topic: String,
   isbn: Number,
-  isbn13: Number,
-  language_code: String,
-  num_pages: Number,
-  ratings_count: Number,
-  text_reviews_count: Number
-}); 
+  format: String,
+  pages: Number,
+  publisher: String,
+  language: String,
+  weight: String,
+  dimensions: String,
+  description: String,
+  availability: String,
+  imageUrl: String,
+  createdAt: Date,
+});
 
 module.exports = mongoose.model('Books', Books);
