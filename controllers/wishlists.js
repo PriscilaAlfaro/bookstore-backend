@@ -33,7 +33,7 @@ wishlistRouter.get('/', async (req, res) => {
         const { limit } = req.query;
         const wishlists = await Wishlists.find().limit(+limit);
         if (wishlists) {
-            res.status(200).json({ books: wishlists, success: "true" });
+            res.status(200).json({ wishlists: wishlists, success: "true" });
         } else {
             res.status(404).json({ message: 'No results', success: "false" });
         }
@@ -45,7 +45,7 @@ wishlistRouter.get('/', async (req, res) => {
 
 wishlistRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ user: req.wishlistById, success: "true" });
+        res.status(200).json({ wishlist: req.wishlistById, success: "true" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -67,6 +67,7 @@ wishlistRouter.put('/:id', async (req, res) => {
 })
 
 // update just one value of the object
+//Si se agrega un item nuevo solo, borra el resto dentro de items // sirve para update cada vez que suma o resta un element
 wishlistRouter.patch('/:id', async (req, res) => {
     const { body } = req
     try {
@@ -101,9 +102,9 @@ wishlistRouter.post('/', async (req, res) => {
         if (
             items && items.length > 0
         ) {
-            const wishlist = new Wishlists(req.body)
+            const wishlist = new Wishlists({ ...req.body, createdAt: Date.now() })
             const savedWishlist = await wishlist.save();
-            res.status(200).json({ book: savedWishlist, success: "true" });
+            res.status(200).json({ wishlist: savedWishlist, success: "true" });
         } else {
             return res.status(400).json({ message: "Bad request", success: "true" });
         }

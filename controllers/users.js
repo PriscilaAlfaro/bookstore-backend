@@ -32,7 +32,7 @@ userRouter.get('/', async (req, res) => {
         const { limit } = req.query;
         const users = await Users.find().limit(+limit);
         if (users) {
-            res.status(200).json({ books: users, success: "true" });
+            res.status(200).json({ users: users, success: "true" });
         } else {
             res.status(404).json({ message: 'No results', success: "false" });
         }
@@ -98,21 +98,19 @@ userRouter.post('/', async (req, res) => {
             email,
             password,
             isAdmin,
-            createdAt,
         } = req.body;
 
         if (
             username &&
             email &&
             password &&
-            isAdmin &&
-            createdAt
+            (isAdmin === false || isAdmin)
         ) {
-            const user = new Users(req.body)
+            const user = new Users({ ...req.body, createdAt: Date.now() })
             const savedUser = await user.save();
-            res.status(200).json({ book: savedUser, success: "true" });
+            res.status(200).json({ user: savedUser, success: "true" });
         } else {
-            return res.status(400).json({ message: "Bad request", success: "true" });
+            return res.status(400).json({ message: "Bad request", success: "false" });
         }
     } catch (error) {
         return res.status(500).json({ message: error.message });

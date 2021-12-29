@@ -5,10 +5,10 @@ const SalesOrders = new mongoose.Schema({
     userId: mongoose.ObjectId,
     details: [{
         productId: mongoose.ObjectId,
-        quatity: Number,
+        quantity: Number,
         unitPrice: Number,
     }],
-    timestamp: Date,
+    createdAt: Date
 });
 
 module.exports = mongoose.model('SalesOrders', SalesOrders);

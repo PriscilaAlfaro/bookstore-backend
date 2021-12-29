@@ -33,7 +33,7 @@ cartRouter.get('/', async (req, res) => {
         const { limit } = req.query;
         const carts = await Carts.find().limit(+limit);
         if (carts) {
-            res.status(200).json({ books: carts, success: "true" });
+            res.status(200).json({ carts: carts, success: "true" });
         } else {
             res.status(404).json({ message: 'No results', success: "false" });
         }
@@ -45,7 +45,20 @@ cartRouter.get('/', async (req, res) => {
 
 cartRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ user: req.cartById, success: "true" });
+        res.status(200).json({ cart: req.cartById, success: "true" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+})
+
+cartRouter.get('/:id/items', async (req, res) => {
+    try {
+        const result = await Carts.findById(req.cartById);
+        if (result === null || !result) {
+            res.status(404).json({ message: 'Id does not exist', success: "false" });
+        } else {
+            res.status(200).json({ items: result.items, success: "true" });
+        }
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -101,9 +114,9 @@ cartRouter.post('/', async (req, res) => {
         if (
             items && items.length > 0
         ) {
-            const cart = new Carts(req.body)
+            const cart = new Carts({ ...req.body, createdAt: Date.now() })
             const savedCart = await cart.save();
-            res.status(200).json({ book: savedCart, success: "true" });
+            res.status(200).json({ cart: savedCart, success: "true" });
         } else {
             return res.status(400).json({ message: "Bad request", success: "true" });
         }

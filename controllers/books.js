@@ -123,7 +123,7 @@ bookRouter.post('/', async (req, res) => {
   try {
     const {
       title,
-      author,
+      authors,
       price,
       topic,
       isbn,
@@ -136,12 +136,10 @@ bookRouter.post('/', async (req, res) => {
       description,
       availability,
       imageUrl,
-      createdAt,
     } = req.body;
-
     if (
       title &&
-      author &&
+      authors &&
       price &&
       topic &&
       isbn &&
@@ -153,14 +151,13 @@ bookRouter.post('/', async (req, res) => {
       dimensions &&
       description &&
       availability &&
-      imageUrl &&
-      createdAt
+      imageUrl
     ) {
-      const book = new Books(req.body)
+      const book = new Books({ ...req.body, createdAt: new Date() });
       const savedBook = await book.save();
       res.status(200).json({ book: savedBook, success: "true" });
     } else {
-      return res.status(400).json({ message: "Bad request", success: "true" });
+      return res.status(400).json({ message: "Bad request", success: "false" });
     }
   } catch (error) {
     return res.status(500).json({ message: error.message });

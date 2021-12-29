@@ -33,7 +33,7 @@ salesOrderRouter.get('/', async (req, res) => {
         const { limit } = req.query;
         const salesOrder = await SalesOrders.find().limit(+limit);
         if (salesOrder) {
-            res.status(200).json({ books: salesOrder, success: "true" });
+            res.status(200).json({ salesOrders: salesOrder, success: "true" });
         } else {
             res.status(404).json({ message: 'No results', success: "false" });
         }
@@ -45,7 +45,7 @@ salesOrderRouter.get('/', async (req, res) => {
 
 salesOrderRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ user: req.salesOrderById, success: "true" });
+        res.status(200).json({ salesOrder: req.salesOrderById, success: "true" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -94,16 +94,16 @@ salesOrderRouter.delete('/:id', async (req, res) => {
 
 salesOrderRouter.post('/', async (req, res) => {
     try {
-        const {
-            details, timestamp
+        const { userId,
+            details
         } = req.body;
 
         if (
-            details && timestamp && details.length > 0
+            userId && details && details.length > 0
         ) {
-            const salesOrder = new SalesOrders(req.body)
+            const salesOrder = new SalesOrders({ ...req.body, createdAt: Date.now() })
             const savedSalesOrder = await salesOrder.save();
-            res.status(200).json({ book: savedSalesOrder, success: "true" });
+            res.status(200).json({ salesOrder: savedSalesOrder, success: "true" });
         } else {
             return res.status(400).json({ message: "Bad request", success: "true" });
         }

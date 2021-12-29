@@ -1,0 +1,10 @@
+[
+    {
+        "bookID": 1,
+        "username": "J.K. Rowling-Mary GrandPré",
+        "email": "jkrouling@gmail.com",
+        "password": "superSecret",
+        "isAdmin": false,
+        "createdAt": "12-12-21"
+    }
+]

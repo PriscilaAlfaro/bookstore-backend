@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // collection name Books
 const Books = new mongoose.Schema({
   title: String,
-  author: String,
+  authors: String,
   price: Number,
   topic: String,
   isbn: Number,

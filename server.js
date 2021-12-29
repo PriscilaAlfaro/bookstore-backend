@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors')
 const listEndpoints = require('express-list-endpoints')
+const { connect } = require('./config/database')
 
 const port = process.env.PORT || 8000
 const app = express()
@@ -26,3 +27,4 @@ app.use('/salesOrders', salesOrders);
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)
 })
+connect();

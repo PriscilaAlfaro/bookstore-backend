@@ -6,7 +6,8 @@ const Wishlists = new mongoose.Schema({
     items: [{
         productId: mongoose.ObjectId,
         quantity: Number
-    }]
+    }],
+    createdAt: Date
 });
 
 module.exports = mongoose.model('Wishlists', Wishlists);

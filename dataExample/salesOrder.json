@@ -1,0 +1,13 @@
+[
+    {
+        "userId": "61cc5f51a71db84845a46bc2",
+        "details": [
+            {
+                "productId": "61cc5fb5ab1cc649806748e3",
+                "quantity": 2,
+                "unitPrice": 200
+            }
+        ],
+        "createdAt": "12-12-21"
+    }
+]
