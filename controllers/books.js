@@ -30,7 +30,7 @@ bookRouter.param('id', async (req, res, next, id) => {
 
 bookRouter.get('/', async (req, res) => {
   try {
-    const { limit } = req.query;
+    const { limit } = req.query || 10;
     const books = await Books.find().limit(+limit);
     if (books) {
       res.status(200).json({ books, success: "true" });
@@ -125,35 +125,32 @@ bookRouter.post('/', async (req, res) => {
       title,
       authors,
       price,
-      topic,
       isbn,
-      format,
-      pages,
-      publisher,
+      pageCount,
       language,
-      weight,
-      dimensions,
-      description,
+      shortDescription,
+      longDescription,
       availability,
-      imageUrl,
+      thumbnailUrl,
+      publishedDate,
+      categories
     } = req.body;
     if (
       title &&
       authors &&
       price &&
-      topic &&
+      categories &&
       isbn &&
       format &&
-      pages &&
-      publisher &&
+      pageCount &&
+      publishedDate &&
       language &&
-      weight &&
-      dimensions &&
-      description &&
+      shortDescription &&
+      longDescription &&
       availability &&
-      imageUrl
+      thumbnailUrl
     ) {
-      const book = new Books({ ...req.body, createdAt: new Date() });
+      const book = new Books({ ...req.body });
       const savedBook = await book.save();
       res.status(200).json({ book: savedBook, success: "true" });
     } else {

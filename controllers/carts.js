@@ -114,7 +114,7 @@ cartRouter.post('/', async (req, res) => {
         if (
             items && items.length > 0
         ) {
-            const cart = new Carts({ ...req.body, createdAt: Date.now() })
+            const cart = new Carts({ ...req.body })
             const savedCart = await cart.save();
             res.status(200).json({ cart: savedCart, success: "true" });
         } else {

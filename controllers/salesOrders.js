@@ -101,7 +101,7 @@ salesOrderRouter.post('/', async (req, res) => {
         if (
             userId && details && details.length > 0
         ) {
-            const salesOrder = new SalesOrders({ ...req.body, createdAt: Date.now() })
+            const salesOrder = new SalesOrders({ ...req.body })
             const savedSalesOrder = await salesOrder.save();
             res.status(200).json({ salesOrder: savedSalesOrder, success: "true" });
         } else {

@@ -2,12 +2,27 @@ const mongoose = require('mongoose');
 
 // collection name Wishlists
 const Wishlists = new mongoose.Schema({
-    userId: mongoose.ObjectId,
+    userId: {
+        type: mongoose.ObjectId,
+        unique: true,
+        required: true
+    },
     items: [{
-        productId: mongoose.ObjectId,
-        quantity: Number
+        productId: {
+            type: mongoose.ObjectId,
+            unique: true,
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+        },
     }],
-    createdAt: Date
+    createdAt: {
+        type: Date,
+        required: true,
+        default: new Date()
+    },
 });
 
 module.exports = mongoose.model('Wishlists', Wishlists);

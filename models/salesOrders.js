@@ -2,13 +2,31 @@ const mongoose = require('mongoose');
 
 // collection name SalesOrders
 const SalesOrders = new mongoose.Schema({
-    userId: mongoose.ObjectId,
+    userId: {
+        type: mongoose.ObjectId,
+        unique: true,
+        required: true
+    },
     details: [{
-        productId: mongoose.ObjectId,
-        quantity: Number,
-        unitPrice: Number,
+        productId: {
+            type: mongoose.ObjectId,
+            unique: true,
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+        },
+        unitPrice: {
+            type: Number,
+            required: true,
+        },
     }],
-    createdAt: Date
+    createdAt: {
+        type: Date,
+        required: true,
+        default: new Date()
+    },
 });
 
 module.exports = mongoose.model('SalesOrders', SalesOrders);

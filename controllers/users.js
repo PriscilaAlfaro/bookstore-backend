@@ -27,6 +27,22 @@ userRouter.param('id', async (req, res, next, id) => {
     }
 })
 
+
+// const authenticateUser = async (req, res, next) => {
+
+//     try {
+//         const user = await User.findOne({ accessToken: req.header('Authorization') })
+//         if (user) {
+//             next();
+//         } else {
+//             res.status(401).json({ response: "Please log in", loggetOut: true, success: false })
+//         }
+//     } catch (error) {
+//         res.status(400).json({ errors: error, success: false })
+//     }
+// }
+
+
 userRouter.get('/', async (req, res) => {
     try {
         const { limit } = req.query;
@@ -106,7 +122,7 @@ userRouter.post('/', async (req, res) => {
             password &&
             (isAdmin === false || isAdmin)
         ) {
-            const user = new Users({ ...req.body, createdAt: Date.now() })
+            const user = new Users({ ...req.body })
             const savedUser = await user.save();
             res.status(200).json({ user: savedUser, success: "true" });
         } else {

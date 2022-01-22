@@ -102,7 +102,7 @@ wishlistRouter.post('/', async (req, res) => {
         if (
             items && items.length > 0
         ) {
-            const wishlist = new Wishlists({ ...req.body, createdAt: Date.now() })
+            const wishlist = new Wishlists({ ...req.body })
             const savedWishlist = await wishlist.save();
             res.status(200).json({ wishlist: savedWishlist, success: "true" });
         } else {
