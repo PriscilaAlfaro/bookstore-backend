@@ -12,6 +12,7 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.json(listEndpoints(app));
 })
+
 const books = require('./controllers/books');
 const users = require('./controllers/users');
 const carts = require('./controllers/carts');
