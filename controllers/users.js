@@ -12,7 +12,7 @@ userRouter.param('id', async (req, res, next, id) => {
         } else {
             const result = await Users.findById(userId);
             if (result === null || !result) {
-                res.status(404).json({ message: 'Id does not exist', success: "false" });
+                res.status(404).json({ response: 'Id does not exist', success: false });
             } else {
                 req.userById = result;
                 next();
@@ -20,9 +20,9 @@ userRouter.param('id', async (req, res, next, id) => {
         }
     } catch (error) {
         if (error.kind === "ObjectId") {
-            return res.status(400).json({ message: "Bad id request", success: "true" });
+            return res.status(400).json({ response: "Bad id request", success: false });
         } else {
-            return res.status(500).json({ message: error.message });
+            return res.status(500).json({ response: error.message, success: false });
         }
     }
 })
@@ -45,24 +45,24 @@ userRouter.param('id', async (req, res, next, id) => {
 
 userRouter.get('/', async (req, res) => {
     try {
-        const { limit } = req.query;
+        const { limit } = req.query || 20;
         const users = await Users.find().limit(+limit);
         if (users) {
-            res.status(200).json({ users: users, success: "true" });
+            res.status(200).json({ response: users, success: true });
         } else {
-            res.status(404).json({ message: 'No results', success: "false" });
+            res.status(404).json({ response: 'No results', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
 
 userRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ user: req.userById, success: "true" });
+        res.status(200).json({ response: req.userById, success: true });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -72,12 +72,12 @@ userRouter.put('/:id', async (req, res) => {
     try {
         const userUpdated = await Users.updateOne({ _id: req.userById }, body);
         if (userUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -89,12 +89,12 @@ userRouter.patch('/:id', async (req, res) => {
             { $set: body });
 
         if (userUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -103,7 +103,7 @@ userRouter.delete('/:id', async (req, res) => {
         await Users.deleteOne({ _id: req.userById });
         return res.status(204).json();
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -124,12 +124,12 @@ userRouter.post('/', async (req, res) => {
         ) {
             const user = new Users({ ...req.body })
             const savedUser = await user.save();
-            res.status(200).json({ user: savedUser, success: "true" });
+            res.status(200).json({ response: savedUser, success: true });
         } else {
-            return res.status(400).json({ message: "Bad request", success: "false" });
+            return res.status(400).json({ response: "Bad request", success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 

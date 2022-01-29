@@ -78,6 +78,14 @@ bookRouter.get('/:id', async (req, res) => {
   }
 })
 
+bookRouter.get('/:id', async (req, res) => {
+  try {
+    res.status(200).json({ response: req.bookById, success: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, success: false });
+  }
+})
+
 // should send all body
 bookRouter.put('/:id', async (req, res) => {
   const { body } = req

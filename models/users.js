@@ -16,10 +16,10 @@ const Users = new mongoose.Schema({
         type: String,
         required: true,
     },
-    accessToken: {
-        type: String,
-        default: () => crypto.randomBytes(128).toString('hex')
-    },
+    // accessToken: {
+    //     type: String,
+    //     default: () => crypto.randomBytes(128).toString('hex')
+    // },
     isAdmin: {
         type: Boolean,
         required: true,
