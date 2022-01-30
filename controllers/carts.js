@@ -30,6 +30,7 @@ cartRouter.param('id', async (req, res, next, id) => {
     }
 })
 
+//get all carts 
 cartRouter.get('/', async (req, res) => {
     try {
         const { limit } = req.query;
@@ -44,7 +45,7 @@ cartRouter.get('/', async (req, res) => {
     }
 })
 
-//for display cart + book information 
+//get cart hidratated + book information 
 cartRouter.get('/:userId/userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -79,28 +80,28 @@ cartRouter.get('/:userId/userId', async (req, res) => {
     }
 })
 
-cartRouter.get('/:id/items', async (req, res) => {
+cartRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ response: req.cartById.items, success: true });
+        res.status(200).json({ response: req.cartById, success: true });
     } catch (error) {
         return res.status(500).json({ response: error.message, success: false });
     }
 })
 
 // should send all body
-cartRouter.put('/:id', async (req, res) => {
-    const { body } = req
-    try {
-        const cartUpdated = await Carts.updateOne({ _id: req.cartById }, body);
-        if (cartUpdated.nModified > 0) {
-            res.status(200).json({ response: body, success: true });
-        } else {
-            res.status(404).json({ response: 'No updated', success: false });
-        }
-    } catch (error) {
-        return res.status(500).json({ response: error.message, success: false });
-    }
-})
+// cartRouter.put('/:id', async (req, res) => {
+//     const { body } = req
+//     try {
+//         const cartUpdated = await Carts.updateOne({ _id: req.cartById }, body);
+//         if (cartUpdated.nModified > 0) {
+//             res.status(200).json({ response: body, success: true });
+//         } else {
+//             res.status(404).json({ response: 'No updated', success: false });
+//         }
+//     } catch (error) {
+//         return res.status(500).json({ response: error.message, success: false });
+//     }
+// })
 
 // update just one value of the object => update cart items
 cartRouter.patch('/:id', async (req, res) => {
@@ -137,7 +138,7 @@ cartRouter.patch('/:id', async (req, res) => {
     }
 })
 
-
+//delete a cart
 cartRouter.delete('/:id', async (req, res) => {
     try {
         await Carts.deleteOne({ _id: req.cartById });
@@ -147,6 +148,32 @@ cartRouter.delete('/:id', async (req, res) => {
     }
 })
 
+/// delete an item inside a cart
+cartRouter.delete('/:id/deleteBook', async (req, res) => {
+    try {
+        const itemToRemove = req.body.item;
+        const productObjectId = mongoose.Types.ObjectId(itemToRemove.productId);
+
+        const bookAlreadyExists = req.cartById.items.filter(item => item.productId.equals(productObjectId));
+
+        if (bookAlreadyExists.length > 0) {
+            const filter = { _id: req.cartById._id, "items.productId": productObjectId };
+            const updateStatement = { $pull: { items: itemToRemove } };
+            const cartUpdated = await Carts.updateOne(filter, updateStatement);
+
+            if (cartUpdated.nModified > 0) {
+                return res.status(204).json({ success: true });
+            } else {
+                res.status(404).json({ response: 'No deleted', success: false });
+            }
+        }
+
+    } catch (error) {
+        return res.status(500).json({ response: error.message, success: false });
+    }
+})
+
+//create a new cart 
 cartRouter.post('/', async (req, res) => {
     try {
         const {
