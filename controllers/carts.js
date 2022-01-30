@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 const express = require('express');
+const mongoose = require('mongoose');
 const Carts = require('../models/carts');
 const Books = require('../models/books');
 
@@ -43,13 +44,8 @@ cartRouter.get('/', async (req, res) => {
     }
 })
 
-cartRouter.get('/:userId', async (req, res) => {
-    //find cart by user id
-    // 1 traer el cart de ese user 
-    // 2. extraer los product ids de ese cart 
-    //3. ir a mongo y hacer $in dentro de books con esos productIds
-    //4. hidratar la info add cart.items + books
-
+//for display cart + book information 
+cartRouter.get('/:userId/userId', async (req, res) => {
     try {
         const { userId } = req.params;
         // search cart by userId
@@ -79,18 +75,13 @@ cartRouter.get('/:userId', async (req, res) => {
         res.status(200).json({ response: hidratatedCart, success: true });
 
     } catch (error) {
-        return res.status(500).json({ response: error.message, from: "userId", success: false });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
 cartRouter.get('/:id/items', async (req, res) => {
     try {
-        const result = await Carts.findById(req.cartById);
-        if (result === null || !result) {
-            res.status(404).json({ response: 'Id does not exist', success: false });
-        } else {
-            res.status(200).json({ response: result.items, success: true });
-        }
+        res.status(200).json({ response: req.cartById.items, success: true });
     } catch (error) {
         return res.status(500).json({ response: error.message, success: false });
     }
@@ -111,22 +102,41 @@ cartRouter.put('/:id', async (req, res) => {
     }
 })
 
-// update just one value of the object
+// update just one value of the object => update cart items
 cartRouter.patch('/:id', async (req, res) => {
-    const { body } = req
+    const itemToPatch = req.body.item;
     try {
-        const cartUpdated = await Carts.updateOne({ _id: req.cartById },
-            { $set: body });
+        const productObjectId = mongoose.Types.ObjectId(itemToPatch.productId);
 
-        if (cartUpdated.nModified > 0) {
-            res.status(200).json({ response: body, success: true });
+        const bookAlreadyExists = req.cartById.items.filter(item => item.productId.equals(productObjectId));
+
+        if (bookAlreadyExists.length > 0) {
+            const filter = { _id: req.cartById._id, "items.productId": productObjectId };
+            const updateStatement = { $set: { 'items.$.quantity': itemToPatch.quantity } };
+            const cartUpdated = await Carts.updateOne(filter, updateStatement);
+
+            if (cartUpdated.nModified > 0) {
+                res.status(200).json({ response: itemToPatch, success: true });
+            } else {
+                res.status(404).json({ response: 'No updated', success: false });
+            }
+
+
         } else {
-            res.status(404).json({ response: 'No updated', success: false });
+            const cartUpdated = await Carts.updateOne({ _id: req.cartById._id },
+                { $push: { items: itemToPatch } });
+            if (cartUpdated.nModified > 0) {
+                res.status(200).json({ response: itemToPatch, success: true });
+            } else {
+                res.status(404).json({ response: 'No updated', success: false });
+            }
         }
+
     } catch (error) {
         return res.status(500).json({ response: error.message, success: false });
     }
 })
+
 
 cartRouter.delete('/:id', async (req, res) => {
     try {
@@ -140,12 +150,10 @@ cartRouter.delete('/:id', async (req, res) => {
 cartRouter.post('/', async (req, res) => {
     try {
         const {
-            items
+            items, userId
         } = req.body;
 
-        if (
-            items && items.length > 0
-        ) {
+        if (items && userId) {
             const cart = new Carts({ ...req.body })
             const savedCart = await cart.save();
             res.status(200).json({ response: savedCart, success: true });
