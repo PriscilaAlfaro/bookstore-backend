@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Carts = require('../models/carts');
 const Books = require('../models/books');
-
+const authenticateUser = require('../auth/auth');
 const cartRouter = express.Router();
 
 // middleware to catch the id param
@@ -23,7 +23,7 @@ cartRouter.param('id', async (req, res, next, id) => {
         }
     } catch (error) {
         if (error.kind === "ObjectId") {
-            return res.status(400).json({ message: "Bad id request", success: true });
+            return res.status(400).json({ message: "Bad id request", success: false });
         } else {
             return res.status(500).json({ message: error.message, success: false });
         }
@@ -45,12 +45,15 @@ cartRouter.get('/', async (req, res) => {
     }
 })
 
-//get cart hidratated + book information 
+//get cart by userId hidratated + book information 
+cartRouter.get('/:userId/userId', authenticateUser);
 cartRouter.get('/:userId/userId', async (req, res) => {
     try {
         const { userId } = req.params;
+        console.log("userId from getting a cart", userId)
         // search cart by userId
-        const cart = await Carts.find({ userId: userId });
+        const cart = await Carts.find({ userId });
+        console.log("cart from gettin a cart", cart)
         //create an array of bookId of that cart
         const productIdBatch = cart[0].items.map(item => item.productId);
         //find all books in books collection by Id
@@ -104,6 +107,7 @@ cartRouter.get('/:id', async (req, res) => {
 // })
 
 // update just one value of the object => update cart items
+cartRouter.patch('/:id', authenticateUser);
 cartRouter.patch('/:id', async (req, res) => {
     const itemToPatch = req.body.item;
     try {
@@ -149,6 +153,7 @@ cartRouter.delete('/:id', async (req, res) => {
 })
 
 /// delete an item inside a cart
+cartRouter.delete('/:id/deleteBook', authenticateUser);
 cartRouter.delete('/:id/deleteBook', async (req, res) => {
     try {
         const itemToRemove = req.body.item;
@@ -174,16 +179,22 @@ cartRouter.delete('/:id/deleteBook', async (req, res) => {
 })
 
 //create a new cart 
+cartRouter.post('/', authenticateUser);
 cartRouter.post('/', async (req, res) => {
     try {
-        const {
-            items, userId
-        } = req.body;
-
+        const { items, userId } = req.body;
+        // console.log("in post a cart", req.body)
         if (items && userId) {
-            const cart = new Carts({ ...req.body })
+            const cart = new Carts(req.body);
             const savedCart = await cart.save();
-            res.status(200).json({ response: savedCart, success: true });
+            console.log("savedCart", savedCart);
+            if (savedCart) {
+                res.status(200).json({ response: savedCart, success: true });
+            } else {
+                res.status(404).json({ message: 'No created', success: false });
+            }
+
+
         } else {
             return res.status(400).json({ response: "Bad request", success: false });
         }

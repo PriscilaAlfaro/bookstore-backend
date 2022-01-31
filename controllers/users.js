@@ -1,6 +1,9 @@
 /* eslint-disable camelcase */
 const express = require('express');
 const Users = require('../models/users');
+// const { authenticateUser } = require('../auth/auth');
+const bcrypt = require('bcrypt-nodejs');
+
 const userRouter = express.Router();
 
 // middleware to catch the id param
@@ -28,19 +31,70 @@ userRouter.param('id', async (req, res, next, id) => {
 })
 
 
-// const authenticateUser = async (req, res, next) => {
+//register a new user 
+userRouter.post('/signup', async (req, res) => {
 
-//     try {
-//         const user = await User.findOne({ accessToken: req.header('Authorization') })
-//         if (user) {
-//             next();
-//         } else {
-//             res.status(401).json({ response: "Please log in", loggetOut: true, success: false })
-//         }
-//     } catch (error) {
-//         res.status(400).json({ errors: error, success: false })
-//     }
-// }
+    const { username, email, password } = req.body;
+    console.log("req.body", req.body)
+
+    try {
+        const salt = bcrypt.genSaltSync();
+
+        if (password.length < 5) {
+            throw "Password must be at least 5 characters long"
+        }
+
+        const user = await new Users({
+            username,
+            email,
+            password: bcrypt.hashSync(password, salt),
+        }).save();
+
+
+        // console.log("user", user)
+
+        res.status(201).json({
+            response: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                accessToken: user.accessToken
+            },
+            success: true,
+        });
+    } catch (error) {
+        res.status(400).json({
+            response: error, id: "from /signup", success: false,
+        });
+    }
+})
+
+//user signin
+userRouter.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await Users.findOne({ email })
+        if (user && bcrypt.compareSync(password, user.password)) {
+            res.status(200).json(
+                {
+                    response: {
+                        id: user._id,
+                        username: user.username,
+                        email: user.email,
+                        accessToken: user.accessToken
+                    },
+                    success: true,
+                })
+        } else {
+            //user does not exist
+            //encripted password does not match
+            res.status(404).json({ response: "Email or password doesn't match", success: false })
+        }
+    } catch (error) {
+        res.status(500).json({ errors: error });
+    }
+})
 
 
 userRouter.get('/', async (req, res) => {
@@ -113,14 +167,14 @@ userRouter.post('/', async (req, res) => {
             username,
             email,
             password,
-            isAdmin,
+            // isAdmin,
         } = req.body;
 
         if (
             username &&
             email &&
-            password &&
-            (isAdmin === false || isAdmin)
+            password
+            // && (isAdmin === false || isAdmin)
         ) {
             const user = new Users({ ...req.body })
             const savedUser = await user.save();

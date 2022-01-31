@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 // collection name Users
 const Users = new mongoose.Schema({
@@ -16,15 +17,15 @@ const Users = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // accessToken: {
-    //     type: String,
-    //     default: () => crypto.randomBytes(128).toString('hex')
-    // },
-    isAdmin: {
-        type: Boolean,
-        required: true,
-        default: false,
+    accessToken: {
+        type: String,
+        default: () => crypto.randomBytes(128).toString('hex')
     },
+    // isAdmin: {
+    //     type: Boolean,
+    //     required: true,
+    //     default: false,
+    // },
     createdAt: {
         type: Date,
         required: true,
