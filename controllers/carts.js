@@ -50,12 +50,10 @@ cartRouter.get('/:userId/userId', authenticateUser);
 cartRouter.get('/:userId/userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        console.log("userId from getting a cart", userId)
         // search cart by userId
         const cart = await Carts.find({ userId });
-        console.log("cart from gettin a cart", cart)
         //create an array of bookId of that cart
-        const productIdBatch = cart[0].items.map(item => item.productId);
+        const productIdBatch = cart[0]?.items.map(item => item.productId);
         //find all books in books collection by Id
         const books = await Books.find({ _id: { $in: productIdBatch } });
         // create a new cart hidratated (cart + books) to display in cart page in frontend
@@ -126,10 +124,12 @@ cartRouter.patch('/:id', async (req, res) => {
                 res.status(404).json({ response: 'No updated', success: false });
             }
 
-
         } else {
-            const cartUpdated = await Carts.updateOne({ _id: req.cartById._id },
+
+            const cartUpdated = await Carts.updateOne(
+                { _id: req.cartById._id },
                 { $push: { items: itemToPatch } });
+            // console.log(cartUpdated)
             if (cartUpdated.nModified > 0) {
                 res.status(200).json({ response: itemToPatch, success: true });
             } else {

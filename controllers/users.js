@@ -50,9 +50,6 @@ userRouter.post('/signup', async (req, res) => {
             password: bcrypt.hashSync(password, salt),
         }).save();
 
-
-        // console.log("user", user)
-
         res.status(201).json({
             response: {
                 id: user._id,

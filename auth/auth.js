@@ -5,7 +5,7 @@ const authenticateUser = async (req, res, next) => {
         const user = await Users.findOne({ accessToken: req.header('Authorization') })
         if (user) {
             req.user = user;
-            console.log(req.user)
+            console.log("user successfully authenticated")
             next();
         } else {
             res.status(401).json({ response: "Please log in", loggetOut: true, success: false })
