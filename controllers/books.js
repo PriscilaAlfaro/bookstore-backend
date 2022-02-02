@@ -13,7 +13,7 @@ bookRouter.param('id', async (req, res, next, id) => {
     } else {
       const result = await Books.findById(bookId);
       if (result === null || !result) {
-        res.status(404).json({ message: 'Id does not exist', success: false });
+        res.status(404).json({ response: 'Id does not exist', success: false });
       } else {
         req.bookById = result;
         next();
@@ -21,9 +21,9 @@ bookRouter.param('id', async (req, res, next, id) => {
     }
   } catch (error) {
     if (error.kind === "ObjectId") {
-      return res.status(400).json({ message: "Bad id request", success: true });
+      return res.status(400).json({ response: "Bad id request", success: false });
     } else {
-      return res.status(500).json({ message: error.message, success: false });
+      return res.status(500).json({ response: error.message, success: false });
     }
   }
 })
@@ -35,10 +35,10 @@ bookRouter.get('/', async (req, res) => {
     if (books) {
       res.status(200).json({ response: books, success: true });
     } else {
-      res.status(404).json({ message: 'No results', success: false });
+      res.status(404).json({ response: 'No results', success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -49,10 +49,10 @@ bookRouter.get('/authors', async (req, res) => {
     if (bookByAuthor.length > 0) {
       res.status(200).json({ response: bookByAuthor, success: true });
     } else {
-      res.status(404).json({ message: 'No results', success: false });
+      res.status(404).json({ response: 'No results', success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -63,26 +63,52 @@ bookRouter.get('/title', async (req, res) => {
     if (bookByTitle.length > 0) {
       res.status(200).json({ response: bookByTitle, success: true });
     } else {
-      res.status(404).json({ message: 'No results', success: false });
+      res.status(404).json({ response: 'No results', success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
+
+//For search bar
+bookRouter.get('/topic', async (req, res) => {
+  try {
+    const { topic } = req.query;
+    const isThereABook = await Books.find(
+      {
+        $or: [
+          { title: { $regex: `.*${topic}.*`, $options: "$i" } },
+          { authors: { $regex: `.*${topic}.*`, $options: "$i" } },
+          { categories: { $regex: `.*${topic}.*`, $options: "$i" } },
+        ]
+      }
+    );
+
+    if (isThereABook.length > 0) {
+      res.status(200).json({ response: isThereABook, success: true });
+    } else {
+      res.status(404).json({ response: 'No results', success: false });
+    }
+  } catch (error) {
+    return res.status(500).json({ response: error.message, success: false });
+  }
+})
+
 
 bookRouter.get('/:id', async (req, res) => {
   try {
     res.status(200).json({ response: req.bookById, success: true });
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
+
 
 bookRouter.get('/:id', async (req, res) => {
   try {
     res.status(200).json({ response: req.bookById, success: true });
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -94,10 +120,10 @@ bookRouter.put('/:id', async (req, res) => {
     if (bookUpdated.nModified > 0) {
       res.status(200).json({ response: body, success: true });
     } else {
-      res.status(404).json({ message: 'No updated', success: false });
+      res.status(404).json({ response: 'No updated', success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -111,10 +137,10 @@ bookRouter.patch('/:id', async (req, res) => {
     if (bookUpdated.nModified > 0) {
       res.status(200).json({ response: body, success: true });
     } else {
-      res.status(404).json({ message: 'No updated', success: false });
+      res.status(404).json({ response: 'No updated', success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -123,7 +149,7 @@ bookRouter.delete('/:id', async (req, res) => {
     await Books.deleteOne({ _id: req.bookById });
     return res.status(204).json({ success: true });
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
@@ -162,10 +188,10 @@ bookRouter.post('/', async (req, res) => {
       const savedBook = await book.save();
       res.status(200).json({ response: savedBook, success: true });
     } else {
-      return res.status(400).json({ message: "Bad request", success: false });
+      return res.status(400).json({ response: "Bad request", success: false });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ response: error.message, success: false });
   }
 })
 
