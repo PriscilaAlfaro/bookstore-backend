@@ -23,6 +23,12 @@ const Carts = new mongoose.Schema({
         required: true,
         default: new Date()
     },
+}, {
+    writeConcern: {
+        w: 'majority',
+        j: true,
+        wtimeout: 1000
+    }
 });
 
 module.exports = mongoose.model('Carts', Carts);

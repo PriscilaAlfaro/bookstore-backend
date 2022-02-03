@@ -163,7 +163,7 @@ cartRouter.delete('/:id/deleteBook', async (req, res) => {
 
         if (bookAlreadyExists.length > 0) {
             const filter = { _id: req.cartById._id, "items.productId": productObjectId };
-            const updateStatement = { $pull: { items: itemToRemove } };
+            const updateStatement = { $pull: { items: { productId: productObjectId } } };
             const cartUpdated = await Carts.updateOne(filter, updateStatement);
 
             if (cartUpdated.nModified > 0) {
