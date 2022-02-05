@@ -10,7 +10,6 @@ const Carts = new mongoose.Schema({
     items: [{
         productId: {
             type: mongoose.ObjectId,
-            unique: true,
             required: true
         },
         quantity: {
