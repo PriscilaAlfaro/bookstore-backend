@@ -7,6 +7,9 @@ const Carts = new mongoose.Schema({
         unique: true,
         required: true
     },
+    klarnaOrderId: {
+        type: String,
+    },
     items: [{
         productId: {
             type: mongoose.ObjectId,

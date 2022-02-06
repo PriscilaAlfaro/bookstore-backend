@@ -118,6 +118,48 @@ salesOrderRouter.post('/', async (req, res) => {
     }
 })
 
+
+salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
+    try {
+        const { klarnaOrderId } = req.params;
+        if (klarnaOrderId) {
+
+            const base64Secrets = Buffer.from(process.env.KARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: "Basic " + base64Secrets,
+                }
+
+            }
+
+            const url = `https://api.playground.klarna.com/checkout/v3/orders/${klarnaOrderId}`;
+
+            return fetch(url, options)
+                .then(res => res.json())
+                .then(klarnaResponse => {
+                    //borrar cart de la base de datos
+                    // await Carts.updateOne(
+                    //     { userId: userIdAsObjectId },
+                    //     { $push: { items: [] } })
+
+
+                    res.status(200).json({ response: klarnaResponse, success: true })
+                });
+
+            //TODO: salvar salesOrder en Database
+
+
+        } else {
+            res.status(404).json({ response: 'No results', success: false });
+        }
+    } catch (error) {
+        return res.status(500).json({ response: error.message });
+    }
+});
+
+
 salesOrderRouter.post('/checkout/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -163,7 +205,6 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
                     }
                 });
 
-                console.log("itemsInfo", itemsInfo)
                 const orderAmount = itemsInfo.reduce((a, b) => a + b.total_amount, 0);
                 const orderTaxAmount = itemsInfo.reduce((a, b) => a + b.total_tax_amount, 0);
 
@@ -177,7 +218,7 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
                     merchant_urls: {
                         terms: "https://www.example.com/terms.html",
                         checkout: "http://localhost:3000/payment",
-                        confirmation: "https://www.example.com/confirmation.html",
+                        confirmation: "http://localhost:3000/paymentConfirmation",
                         push: "https://www.example.com/api/push"
                     }
                 }
@@ -196,10 +237,18 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
 
                 const url = "https://api.playground.klarna.com/checkout/v3/orders"
 
-                return fetch(url, options)
+                fetch(url, options)
                     .then(res => res.json())
-                    .then(klarnaResponse =>
-                        res.status(200).json({ response: klarnaResponse, success: true }));
+                    .then(klarnaResponse => {
+                        // Carts.updateOne(
+                        //     { userId: userIdAsObjectId },
+                        //     { klarnaOrderId: klarnaResponse.order_id });
+
+                        res.status(200).json({ response: klarnaResponse, success: true })
+                    });
+
+                //a;adir order-id al cart para salvar la orden
+
 
 
 
