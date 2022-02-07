@@ -124,6 +124,8 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
         const { klarnaOrderId } = req.params;
         if (klarnaOrderId) {
 
+            const cart = await Carts.find({ klarnaOrderId: klarnaOrderId });
+
             const base64Secrets = Buffer.from(process.env.KARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
             const options = {
                 method: 'GET',
@@ -131,24 +133,41 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
                     'Content-Type': 'application/json',
                     Authorization: "Basic " + base64Secrets,
                 }
-
             }
 
             const url = `https://api.playground.klarna.com/checkout/v3/orders/${klarnaOrderId}`;
 
-            return fetch(url, options)
-                .then(res => res.json())
-                .then(klarnaResponse => {
-                    //borrar cart de la base de datos
-                    // await Carts.updateOne(
-                    //     { userId: userIdAsObjectId },
-                    //     { $push: { items: [] } })
+            const klarnaResponse = await fetch(url, options)
+                .then(res => res.json());
+
+            console.log("klarnaResponse", klarnaResponse)
+
+            // salvar salesOrder en Database  
+            const orderDetails = klarnaResponse.order_lines.map(item => {
+                return {
+                    productId: item.reference,
+                    quantity: item.quantity,
+                    unitPrice: item.unit_price, //with taxes
+                    taxes: item.tax_rate,
+                }
+            });
+            const salesOrder = new SalesOrders({
+                userId: cart[0]?.userId,
+                status: klarnaResponse.status,
+                orderAmount: klarnaResponse.order_amount, //with taxes
+                orderTaxes: klarnaResponse.order_tax_amount,
+                details: orderDetails,
+            })
+
+            await salesOrder.save();
+
+            //borrar el carrito
+            await Carts.updateOne(
+                { klarnaOrderId: klarnaResponse.order_id },
+                { items: [] });
 
 
-                    res.status(200).json({ response: klarnaResponse, success: true })
-                });
-
-            //TODO: salvar salesOrder en Database
+            res.status(200).json({ response: klarnaResponse, success: true })
 
 
         } else {
@@ -237,20 +256,15 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
 
                 const url = "https://api.playground.klarna.com/checkout/v3/orders"
 
-                fetch(url, options)
-                    .then(res => res.json())
-                    .then(klarnaResponse => {
-                        // Carts.updateOne(
-                        //     { userId: userIdAsObjectId },
-                        //     { klarnaOrderId: klarnaResponse.order_id });
+                const klarnaResponse = await fetch(url, options)
+                    .then(res => res.json());
 
-                        res.status(200).json({ response: klarnaResponse, success: true })
-                    });
+                //save klarna order id in Cart
+                await Carts.updateOne(
+                    { userId: userIdAsObjectId },
+                    { klarnaOrderId: klarnaResponse.order_id });
 
-                //a;adir order-id al cart para salvar la orden
-
-
-
+                res.status(200).json({ response: klarnaResponse, success: true })
 
             } else {
                 return res.status(404).json({ response: "cart not found", success: false });

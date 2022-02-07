@@ -7,10 +7,21 @@ const SalesOrders = new mongoose.Schema({
         unique: true,
         required: true
     },
+    status: {
+        type: String,
+        required: true
+    },
+    orderAmount: {
+        type: Number,
+        required: true
+    },
+    orderTaxes: {
+        type: Number,
+        required: true
+    },
     details: [{
         productId: {
             type: mongoose.ObjectId,
-            unique: true,
             required: true
         },
         quantity: {
@@ -18,6 +29,10 @@ const SalesOrders = new mongoose.Schema({
             required: true,
         },
         unitPrice: {
+            type: Number,
+            required: true,
+        },
+        taxes: {
             type: Number,
             required: true,
         },

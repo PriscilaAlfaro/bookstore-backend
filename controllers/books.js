@@ -82,7 +82,7 @@ bookRouter.get('/topic', async (req, res) => {
           { categories: { $regex: `.*${topic}.*`, $options: "$i" } },
         ]
       }
-    );
+    ).sort({ title: "asc" });
 
     if (isThereABook.length > 0) {
       res.status(200).json({ response: isThereABook, success: true });
