@@ -46,34 +46,6 @@ bookRouter.get('/', async (req, res) => {
   }
 })
 
-bookRouter.get('/authors', async (req, res) => {
-  try {
-    const { authors } = req.query;
-    const bookByAuthor = await Books.find({ authors: { $regex: `.*${authors}.*` } });
-    if (bookByAuthor.length > 0) {
-      res.status(200).json({ response: bookByAuthor, success: true });
-    } else {
-      res.status(404).json({ response: 'No results', success: false });
-    }
-  } catch (error) {
-    return res.status(500).json({ response: error.message, success: false });
-  }
-})
-
-bookRouter.get('/title', async (req, res) => {
-  try {
-    const { title } = req.query;
-    const bookByTitle = await Books.find({ title: { $regex: `.*${title}.*` } });
-    if (bookByTitle.length > 0) {
-      res.status(200).json({ response: bookByTitle, success: true });
-    } else {
-      res.status(404).json({ response: 'No results', success: false });
-    }
-  } catch (error) {
-    return res.status(500).json({ response: error.message, success: false });
-  }
-})
-
 //For search bar
 bookRouter.get('/topic', async (req, res) => {
   try {
@@ -93,15 +65,6 @@ bookRouter.get('/topic', async (req, res) => {
     } else {
       res.status(404).json({ response: 'No results', success: false });
     }
-  } catch (error) {
-    return res.status(500).json({ response: error.message, success: false });
-  }
-})
-
-
-bookRouter.get('/:id', async (req, res) => {
-  try {
-    res.status(200).json({ response: req.bookById, success: true });
   } catch (error) {
     return res.status(500).json({ response: error.message, success: false });
   }

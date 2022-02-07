@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 const express = require('express');
 const Users = require('../models/users');
-// const { authenticateUser } = require('../auth/auth');
 const bcrypt = require('bcrypt-nodejs');
 
 const userRouter = express.Router();
@@ -35,7 +34,6 @@ userRouter.param('id', async (req, res, next, id) => {
 userRouter.post('/signup', async (req, res) => {
 
     const { username, email, password } = req.body;
-    console.log("req.body", req.body)
 
     try {
         const salt = bcrypt.genSaltSync();
@@ -60,9 +58,7 @@ userRouter.post('/signup', async (req, res) => {
             success: true,
         });
     } catch (error) {
-        res.status(400).json({
-            response: error, id: "from /signup", success: false,
-        });
+        res.status(400).json({ response: error.message, success: false, });
     }
 })
 
@@ -93,7 +89,7 @@ userRouter.post('/signin', async (req, res) => {
     }
 })
 
-
+//get all users
 userRouter.get('/', async (req, res) => {
     try {
         const { limit } = req.query || 20;
@@ -108,7 +104,7 @@ userRouter.get('/', async (req, res) => {
     }
 })
 
-
+//get User by Id
 userRouter.get('/:id', async (req, res) => {
     try {
         res.status(200).json({ response: req.userById, success: true });
@@ -149,36 +145,11 @@ userRouter.patch('/:id', async (req, res) => {
     }
 })
 
+//delete a user by id
 userRouter.delete('/:id', async (req, res) => {
     try {
         await Users.deleteOne({ _id: req.userById });
         return res.status(204).json();
-    } catch (error) {
-        return res.status(500).json({ response: error.message, success: false });
-    }
-})
-
-userRouter.post('/', async (req, res) => {
-    try {
-        const {
-            username,
-            email,
-            password,
-            // isAdmin,
-        } = req.body;
-
-        if (
-            username &&
-            email &&
-            password
-            // && (isAdmin === false || isAdmin)
-        ) {
-            const user = new Users({ ...req.body })
-            const savedUser = await user.save();
-            res.status(200).json({ response: savedUser, success: true });
-        } else {
-            return res.status(400).json({ response: "Bad request", success: false });
-        }
     } catch (error) {
         return res.status(500).json({ response: error.message, success: false });
     }

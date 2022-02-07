@@ -19,7 +19,7 @@ salesOrderRouter.param('id', async (req, res, next, id) => {
         } else {
             const result = await SalesOrders.findById(salesOrderId);
             if (result === null || !result) {
-                res.status(404).json({ message: 'Id does not exist', success: "false" });
+                res.status(404).json({ response: 'Id does not exist', success: false });
             } else {
                 req.salesOrderById = result;
                 next();
@@ -27,33 +27,34 @@ salesOrderRouter.param('id', async (req, res, next, id) => {
         }
     } catch (error) {
         if (error.kind === "ObjectId") {
-            return res.status(400).json({ message: "Bad id request", success: "true" });
+            return res.status(400).json({ response: "Bad id request", success: true });
         } else {
-            return res.status(500).json({ message: error.message });
+            return res.status(500).json({ response: error.message, success: false });
         }
     }
 })
 
+//get all orders
 salesOrderRouter.get('/', async (req, res) => {
     try {
         const { limit } = req.query;
         const salesOrder = await SalesOrders.find().limit(+limit);
         if (salesOrder) {
-            res.status(200).json({ salesOrders: salesOrder, success: "true" });
+            res.status(200).json({ salesOrders: salesOrder, success: true });
         } else {
-            res.status(404).json({ message: 'No results', success: "false" });
+            res.status(404).json({ response: 'No results', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
-
+//getOrder by Id
 salesOrderRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ salesOrder: req.salesOrderById, success: "true" });
+        res.status(200).json({ response: req.salesOrderById, success: true });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -63,12 +64,12 @@ salesOrderRouter.put('/:id', async (req, res) => {
     try {
         const salesOrderUpdated = await SalesOrders.updateOne({ _id: req.salesOrderById }, body);
         if (salesOrderUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -80,24 +81,26 @@ salesOrderRouter.patch('/:id', async (req, res) => {
             { $set: body });
 
         if (salesOrderUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
+//delete salesOrder By Id
 salesOrderRouter.delete('/:id', async (req, res) => {
     try {
         await SalesOrders.deleteOne({ _id: req.salesOrderById });
         return res.status(204).json();
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message, success: false });
     }
 })
 
+//post new sales Order
 salesOrderRouter.post('/', async (req, res) => {
     try {
         const { userId,
@@ -109,16 +112,16 @@ salesOrderRouter.post('/', async (req, res) => {
         ) {
             const salesOrder = new SalesOrders({ ...req.body })
             const savedSalesOrder = await salesOrder.save();
-            res.status(200).json({ salesOrder: savedSalesOrder, success: "true" });
+            res.status(200).json({ response: savedSalesOrder, success: true });
         } else {
-            return res.status(400).json({ message: "Bad request", success: "true" });
+            return res.status(400).json({ response: "Bad request", success: true });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.response });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
-
+//specifc for klarna checkout  //save salesOrder in database and delete cart Items
 salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
     try {
         const { klarnaOrderId } = req.params;
@@ -140,9 +143,7 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
             const klarnaResponse = await fetch(url, options)
                 .then(res => res.json());
 
-            console.log("klarnaResponse", klarnaResponse)
-
-            // salvar salesOrder en Database  
+            // save salesOrder in Database  
             const orderDetails = klarnaResponse.order_lines.map(item => {
                 return {
                     productId: item.reference,
@@ -158,10 +159,9 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
                 orderTaxes: klarnaResponse.order_tax_amount,
                 details: orderDetails,
             })
-
             await salesOrder.save();
 
-            //borrar el carrito
+            //delete the cart
             await Carts.updateOne(
                 { klarnaOrderId: klarnaResponse.order_id },
                 { items: [] });
@@ -174,11 +174,11 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
             res.status(404).json({ response: 'No results', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ response: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 });
 
-
+//specifc for klarna checkout  //add klarnaOrderId to cart
 salesOrderRouter.post('/checkout/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -274,7 +274,7 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
             return res.status(400).json({ response: "Bad request", success: false });
         }
     } catch (error) {
-        return res.status(500).json({ response: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 

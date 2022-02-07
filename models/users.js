@@ -21,11 +21,6 @@ const Users = new mongoose.Schema({
         type: String,
         default: () => crypto.randomBytes(128).toString('hex')
     },
-    // isAdmin: {
-    //     type: Boolean,
-    //     required: true,
-    //     default: false,
-    // },
     createdAt: {
         type: Date,
         required: true,

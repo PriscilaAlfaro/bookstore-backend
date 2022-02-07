@@ -6,29 +6,29 @@ const Books = require('../models/books');
 const authenticateUser = require('../auth/auth');
 const cartRouter = express.Router();
 
-// middleware to catch the id param
-// cartRouter.param('id', async (req, res, next, id) => {
-//     try {
-//         const cartId = id;
-//         if (!cartId || cartId === null) {
-//             return res.status(404).send('Id does not exist')
-//         } else {
-//             const result = await Carts.findById(cartId);
-//             if (result === null || !result) {
-//                 res.status(404).json({ message: 'Id does not exist', success: false });
-//             } else {
-//                 req.cartById = result;
-//                 next();
-//             }
-//         }
-//     } catch (error) {
-//         if (error.kind === "ObjectId") {
-//             return res.status(400).json({ message: "Bad id request", success: false });
-//         } else {
-//             return res.status(500).json({ message: error.message, success: false });
-//         }
-//     }
-// })
+//middleware to catch the id param
+cartRouter.param('id', async (req, res, next, id) => {
+    try {
+        const cartId = id;
+        if (!cartId || cartId === null) {
+            return res.status(404).send('Id does not exist')
+        } else {
+            const result = await Carts.findById(cartId);
+            if (result === null || !result) {
+                res.status(404).json({ response: 'Id does not exist', success: false });
+            } else {
+                req.cartById = result;
+                next();
+            }
+        }
+    } catch (error) {
+        if (error.kind === "ObjectId") {
+            return res.status(400).json({ response: "Bad id request", success: false });
+        } else {
+            return res.status(500).json({ response: error.message, success: false });
+        }
+    }
+})
 
 //get all carts 
 cartRouter.get('/', async (req, res) => {
@@ -40,6 +40,25 @@ cartRouter.get('/', async (req, res) => {
         } else {
             res.status(404).json({ response: 'No results', success: false });
         }
+    } catch (error) {
+        return res.status(500).json({ response: error.message, success: false });
+    }
+})
+
+//get a cart by cart id
+cartRouter.get('/:id', async (req, res) => {
+    try {
+        res.status(200).json({ response: req.cartById, success: true });
+    } catch (error) {
+        return res.status(500).json({ response: error.message, success: false });
+    }
+})
+
+//delete a cart
+cartRouter.delete('/:id', async (req, res) => {
+    try {
+        await Carts.deleteOne({ _id: req.cartById });
+        return res.status(204).json({ success: true });
     } catch (error) {
         return res.status(500).json({ response: error.message, success: false });
     }
@@ -81,28 +100,6 @@ cartRouter.get('/:userId/userId', async (req, res) => {
     }
 })
 
-cartRouter.get('/:id', async (req, res) => {
-    try {
-        res.status(200).json({ response: req.cartById, success: true });
-    } catch (error) {
-        return res.status(500).json({ response: error.message, success: false });
-    }
-})
-
-// should send all body
-// cartRouter.put('/:id', async (req, res) => {
-//     const { body } = req
-//     try {
-//         const cartUpdated = await Carts.updateOne({ _id: req.cartById }, body);
-//         if (cartUpdated.nModified > 0) {
-//             res.status(200).json({ response: body, success: true });
-//         } else {
-//             res.status(404).json({ response: 'No updated', success: false });
-//         }
-//     } catch (error) {
-//         return res.status(500).json({ response: error.message, success: false });
-//     }
-// })
 
 // update just one value of the object => update cart items
 cartRouter.patch('/:id', authenticateUser);
@@ -129,7 +126,7 @@ cartRouter.patch('/:id', async (req, res) => {
             const cartUpdated = await Carts.updateOne(
                 { _id: req.cartById._id },
                 { $push: { items: itemToPatch } });
-            // console.log(cartUpdated)
+
             if (cartUpdated.nModified > 0) {
                 res.status(200).json({ response: itemToPatch, success: true });
             } else {
@@ -142,15 +139,6 @@ cartRouter.patch('/:id', async (req, res) => {
     }
 })
 
-//delete a cart
-cartRouter.delete('/:id', async (req, res) => {
-    try {
-        await Carts.deleteOne({ _id: req.cartById });
-        return res.status(204).json({ success: true });
-    } catch (error) {
-        return res.status(500).json({ response: error.message, success: false });
-    }
-})
 
 /// delete an item inside a cart
 cartRouter.delete('/:userId/items/:productId', authenticateUser);
@@ -212,7 +200,7 @@ cartRouter.delete('/:userId/items/:productId', async (req, res) => {
 })
 
 
-//----->  Checked successfully
+//post idempotente
 cartRouter.post('/:userId/items/:productId', authenticateUser);
 cartRouter.post('/:userId/items/:productId', async (req, res) => {
     try {

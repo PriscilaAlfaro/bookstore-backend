@@ -16,7 +16,7 @@ wishlistRouter.param('id', async (req, res, next, id) => {
         } else {
             const result = await Wishlists.findById(whislistId);
             if (result === null || !result) {
-                res.status(404).json({ message: 'Id does not exist', success: "false" });
+                res.status(404).json({ response: 'Id does not exist', success: false });
             } else {
                 req.wishlistById = result;
                 next();
@@ -24,33 +24,34 @@ wishlistRouter.param('id', async (req, res, next, id) => {
         }
     } catch (error) {
         if (error.kind === "ObjectId") {
-            return res.status(400).json({ message: "Bad id request", success: "true" });
+            return res.status(400).json({ response: "Bad id request", success: false });
         } else {
-            return res.status(500).json({ message: error.message });
+            return res.status(500).json({ response: error.message, success: false });
         }
     }
 })
 
+//get all wishlist
 wishlistRouter.get('/', async (req, res) => {
     try {
         const { limit } = req.query;
         const wishlists = await Wishlists.find().limit(+limit);
         if (wishlists) {
-            res.status(200).json({ wishlists: wishlists, success: "true" });
+            res.status(200).json({ response: wishlists, success: true });
         } else {
-            res.status(404).json({ message: 'No results', success: "false" });
+            res.status(404).json({ response: 'No results', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
-
+//ge twishlist by Id
 wishlistRouter.get('/:id', async (req, res) => {
     try {
-        res.status(200).json({ wishlist: req.wishlistById, success: "true" });
+        res.status(200).json({ response: req.wishlistById, success: true });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
@@ -60,17 +61,17 @@ wishlistRouter.put('/:id', async (req, res) => {
     try {
         const wishlistUpdated = await Wishlists.updateOne({ _id: req.wishlistById }, body);
         if (wishlistUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
 // update just one value of the object
-//Si se agrega un item nuevo solo, borra el resto dentro de items // sirve para update cada vez que suma o resta un element
+//Si se agrega un item nuevo solo, borra el resto dentro de items 
 wishlistRouter.patch('/:id', async (req, res) => {
     const { body } = req
     try {
@@ -78,15 +79,16 @@ wishlistRouter.patch('/:id', async (req, res) => {
             { $set: body });
 
         if (wishlistUpdated.nModified > 0) {
-            res.status(200).json({ ...body, success: "true" });
+            res.status(200).json({ response: body, success: true });
         } else {
-            res.status(404).json({ message: 'No updated', success: "false" });
+            res.status(404).json({ response: 'No updated', success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
+//get wishlist by user id
 wishlistRouter.get('/:userId/userId', authenticateUser);
 wishlistRouter.get('/:userId/userId', async (req, res) => {
     try {
@@ -120,6 +122,7 @@ wishlistRouter.get('/:userId/userId', async (req, res) => {
     }
 })
 
+//delete item inside a wishlist
 wishlistRouter.delete('/:userId/items/:productId', authenticateUser);
 wishlistRouter.delete('/:userId/items/:productId', async (req, res) => {
     try {
@@ -172,6 +175,7 @@ wishlistRouter.delete('/:userId/items/:productId', async (req, res) => {
     }
 })
 
+//add an item to wishlist - idempotent
 wishlistRouter.post('/:userId/items/:productId', authenticateUser);
 wishlistRouter.post('/:userId/items/:productId', async (req, res) => {
     try {

@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const SalesOrders = new mongoose.Schema({
     userId: {
         type: mongoose.ObjectId,
-        unique: true,
         required: true
     },
     status: {
