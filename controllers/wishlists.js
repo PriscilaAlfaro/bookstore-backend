@@ -1,6 +1,9 @@
 /* eslint-disable camelcase */
 const express = require('express');
+const mongoose = require('mongoose');
 const Wishlists = require('../models/wishlists');
+const Books = require('../models/books');
+const authenticateUser = require('../auth/auth');
 
 const wishlistRouter = express.Router();
 
@@ -84,33 +87,155 @@ wishlistRouter.patch('/:id', async (req, res) => {
     }
 })
 
-wishlistRouter.delete('/:id', async (req, res) => {
+wishlistRouter.get('/:userId/userId', authenticateUser);
+wishlistRouter.get('/:userId/userId', async (req, res) => {
     try {
-        await Wishlists.deleteOne({ _id: req.wishlistById });
-        return res.status(204).json();
+        const { userId } = req.params;
+        // search wishlist by userId
+        const wish = await Wishlists.find({ userId });
+        //create an array of bookId of that wishlist
+        const productIdBatch = wish[0]?.items.map(item => item.productId);
+        //find all books in books collection by Id
+        const books = await Books.find({ _id: { $in: productIdBatch } });
+        // create a new wishlist hidratated (wishlist + books) to display in wishlist page in frontend
+        const itemsInfo = books.map(book => {
+            return {
+                productId: book._id,
+                title: book.title,
+                price: book.price,
+                url: book.thumbnailUrl
+            }
+        });
+
+        const hidratatedWishlist = {
+            _id: wish[0]._id,
+            userId: wish[0].userId,
+            items: itemsInfo,
+        }
+
+        console.log("hidratatedWishlist", hidratatedWishlist)
+        res.status(200).json({ response: hidratatedWishlist, success: true });
+
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
 })
 
-wishlistRouter.post('/', async (req, res) => {
+wishlistRouter.delete('/:userId/items/:productId', authenticateUser);
+wishlistRouter.delete('/:userId/items/:productId', async (req, res) => {
     try {
-        const {
-            items
-        } = req.body;
+        const { userId, productId } = req.params;
 
-        if (
-            items && items.length > 0
-        ) {
-            const wishlist = new Wishlists({ ...req.body })
-            const savedWishlist = await wishlist.save();
-            res.status(200).json({ wishlist: savedWishlist, success: "true" });
+        if (userId && productId) {
+            const userIdAsObjectId = mongoose.Types.ObjectId(userId);
+            const productIdAsObjectId = mongoose.Types.ObjectId(productId);
+
+            const wish = await Wishlists.find({ userId: userIdAsObjectId });
+
+            const itemAlreadyExists = wish[0]?.items.find(item => item.productId.equals(productIdAsObjectId));
+
+            if (itemAlreadyExists) {
+                //delete item
+                await Wishlists.updateOne({ userId: userIdAsObjectId, 'items.productId': productIdAsObjectId }, { $pull: { items: { productId: productIdAsObjectId } } });
+            } else {
+                return res.status(404).json({ response: "Not Found", success: false });
+            }
+
+            const wishUpdated = await Wishlists.find({ userId: userIdAsObjectId });
+            //create an array of bookId of that wishlist
+            const productIdBatch = wishUpdated[0]?.items.map(item => item.productId);
+            //find all books in books collection by Id
+            const books = await Books.find({ _id: { $in: productIdBatch } });
+            // create a new wishlist hidratated (wishlist + books) to display in wishlist page in frontend
+            const itemsInfo = books.map(book => {
+                return {
+                    productId: book._id,
+                    title: book.title,
+                    price: book.price,
+                    url: book.thumbnailUrl
+                }
+            });
+
+            const hidratatedWishlist = {
+                _id: wishUpdated[0]._id,
+                userId: wishUpdated[0].userId,
+                items: itemsInfo,
+            }
+
+            console.log("hidratatedWishlist", hidratatedWishlist)
+            res.status(200).json({ response: hidratatedWishlist, success: true }); //If 204 don't show content
+
         } else {
-            return res.status(400).json({ message: "Bad request", success: "true" });
+            return res.status(400).json({ response: "Bad request not deleted", success: false });
+        }
+
+    } catch (error) {
+        return res.status(500).json({ response: error.message, success: false });
+    }
+})
+
+wishlistRouter.post('/:userId/items/:productId', authenticateUser);
+wishlistRouter.post('/:userId/items/:productId', async (req, res) => {
+    try {
+        const { userId, productId } = req.params;
+
+        if (productId && userId) {
+            const userIdAsObjectId = mongoose.Types.ObjectId(userId);
+            const productIdAsObjectId = mongoose.Types.ObjectId(productId);
+            //check if wishlist exist
+            const wishListAlreadyExists = await Wishlists.exists({ userId: userIdAsObjectId });
+            if (wishListAlreadyExists) {
+                const itemAlreadyExists = await Wishlists.exists({ userId: userIdAsObjectId, "items.productId": productIdAsObjectId })
+                if (!itemAlreadyExists) {
+                    await Wishlists.updateOne(
+                        { userId: userIdAsObjectId },
+                        { $push: { items: { productId: productIdAsObjectId } } },
+                    );
+                }
+
+            } else {
+                //if wishlist does not exist: create the wishlist with the item
+                const wish = new Wishlists({ userId: userIdAsObjectId, items: [{ productId: productIdAsObjectId }] });
+                await wish.save();
+            }
+
+            //response with the wishlist latest version hidrated
+            const wish = await Wishlists.find({ userId: userIdAsObjectId });
+            console.log(wish)
+            //create an array of bookId of that wishlist
+            const productIdBatch = wish[0]?.items.map(item => item.productId);
+            console.log("productIdBatch", productIdBatch)
+            //find all books in books collection by Id
+            const books = await Books.find({ _id: { $in: productIdBatch } });
+            // create a new wishlist hidratated (wishlist + books) to display in wishlist page in frontend
+            const itemsInfo = books.map(book => {
+                return {
+                    productId: book._id,
+                    title: book.title,
+                    price: book.price,
+                    url: book.thumbnailUrl
+                }
+            });
+
+            console.log("itemsInfo", itemsInfo);
+
+            const hidratatedWish = {
+                _id: wish[0]._id,
+                userId: wish[0].userId,
+                items: itemsInfo,
+            }
+
+            console.log("hidratatedWishlist", hidratatedWish)
+
+            res.status(200).json({ response: hidratatedWish, success: true });
+
+        } else {
+            return res.status(400).json({ response: "Bad request", success: false });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ response: error.message, success: false });
     }
+
 })
 
 module.exports = wishlistRouter;

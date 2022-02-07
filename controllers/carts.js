@@ -164,7 +164,7 @@ cartRouter.delete('/:userId/items/:productId', async (req, res) => {
             const productIdAsObjectId = mongoose.Types.ObjectId(productId);
 
             const cart = await Carts.find({ userId: userIdAsObjectId });
-            console.log(cart);
+
             const itemAlreadyExists = cart[0]?.items.find(item => item.productId.equals(productIdAsObjectId));
 
 
@@ -174,7 +174,7 @@ cartRouter.delete('/:userId/items/:productId', async (req, res) => {
 
             } else {
                 //update item
-                await Carts.updateOne({ userId: userIdAsObjectId, 'items.productId': productIdAsObjectId }, { $inc: { 'items.$.quantity': -1 } });
+                await Carts.updateOne({ userId: userIdAsObjectId, 'items.productId': productIdAsObjectId }, { $inc: { 'items.$.quantity': -1 } });//decrement
             }
 
             const cartUpdated = await Carts.find({ userId: userIdAsObjectId });
@@ -200,7 +200,6 @@ cartRouter.delete('/:userId/items/:productId', async (req, res) => {
                 items: itemsInfo,
             }
 
-            console.log("hidratatedCart", hidratatedCart)
             res.status(200).json({ response: hidratatedCart, success: true }); //If 204 don't show content
 
         } else {
@@ -212,30 +211,6 @@ cartRouter.delete('/:userId/items/:productId', async (req, res) => {
     }
 })
 
-//create a new cart 
-cartRouter.post('/', authenticateUser);
-cartRouter.post('/', async (req, res) => {
-    try {
-        const { items, userId } = req.body;
-        // console.log("in post a cart", req.body)
-        if (items && userId) {
-            const cart = new Carts(req.body);
-            const savedCart = await cart.save();
-            console.log("savedCart", savedCart);
-            if (savedCart) {
-                res.status(200).json({ response: savedCart, success: true });
-            } else {
-                res.status(404).json({ message: 'No created', success: false });
-            }
-
-
-        } else {
-            return res.status(400).json({ response: "Bad request", success: false });
-        }
-    } catch (error) {
-        return res.status(500).json({ response: error.message, success: false });
-    }
-})
 
 //----->  Checked successfully
 cartRouter.post('/:userId/items/:productId', authenticateUser);

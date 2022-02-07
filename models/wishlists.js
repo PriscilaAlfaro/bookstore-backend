@@ -12,17 +12,20 @@ const Wishlists = new mongoose.Schema({
             type: mongoose.ObjectId,
             unique: true,
             required: true
-        },
-        quantity: {
-            type: Number,
-            required: true,
-        },
+        }
     }],
     createdAt: {
         type: Date,
         required: true,
         default: new Date()
     },
-});
+}, {
+    writeConcern: {
+        w: 'majority',
+        j: true,
+        wtimeout: 1000
+    }
+}
+);
 
 module.exports = mongoose.model('Wishlists', Wishlists);
