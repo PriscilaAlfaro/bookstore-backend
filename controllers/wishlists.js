@@ -113,7 +113,6 @@ wishlistRouter.get('/:userId/userId', async (req, res) => {
             items: itemsInfo,
         }
 
-        console.log("hidratatedWishlist", hidratatedWishlist)
         res.status(200).json({ response: hidratatedWishlist, success: true });
 
     } catch (error) {
@@ -162,7 +161,6 @@ wishlistRouter.delete('/:userId/items/:productId', async (req, res) => {
                 items: itemsInfo,
             }
 
-            console.log("hidratatedWishlist", hidratatedWishlist)
             res.status(200).json({ response: hidratatedWishlist, success: true }); //If 204 don't show content
 
         } else {
@@ -201,10 +199,10 @@ wishlistRouter.post('/:userId/items/:productId', async (req, res) => {
 
             //response with the wishlist latest version hidrated
             const wish = await Wishlists.find({ userId: userIdAsObjectId });
-            console.log(wish)
+
             //create an array of bookId of that wishlist
             const productIdBatch = wish[0]?.items.map(item => item.productId);
-            console.log("productIdBatch", productIdBatch)
+
             //find all books in books collection by Id
             const books = await Books.find({ _id: { $in: productIdBatch } });
             // create a new wishlist hidratated (wishlist + books) to display in wishlist page in frontend
@@ -217,15 +215,11 @@ wishlistRouter.post('/:userId/items/:productId', async (req, res) => {
                 }
             });
 
-            console.log("itemsInfo", itemsInfo);
-
             const hidratatedWish = {
                 _id: wish[0]._id,
                 userId: wish[0].userId,
                 items: itemsInfo,
             }
-
-            console.log("hidratatedWishlist", hidratatedWish)
 
             res.status(200).json({ response: hidratatedWish, success: true });
 

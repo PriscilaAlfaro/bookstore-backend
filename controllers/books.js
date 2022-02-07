@@ -30,8 +30,12 @@ bookRouter.param('id', async (req, res, next, id) => {
 
 bookRouter.get('/', async (req, res) => {
   try {
-    const { limit } = req.query || 20;
-    const books = await Books.find().limit(+limit);
+    const { limit, offset } = req.query;
+
+    const limitParam = Math.abs(limit || 20)//absolute value
+    const offsetParam = Math.abs(offset || 0)//absolute value
+
+    const books = await Books.find().sort({ title: "asc" }).skip(offsetParam).limit(limitParam);
     if (books) {
       res.status(200).json({ response: books, success: true });
     } else {
