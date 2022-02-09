@@ -19,15 +19,14 @@ I decided to work with the backend and [frontend](https://github.com/PriscilaAlf
 
 ## Routes
 ```
-  Books
-  Users
-  Carts
-  Wislists
-  SalesOrders
+  books
+  users
+  carts
+  wishlists
+  salesOrders
 ```
-
 ## General design ideas
-I developed a general idea about how I wanted my data modeling to be in a simple [jamboard document](https://jamboard.google.com/d/1P-4nCIT4J0eBcKg9AAa4y0nALJxTdqozpYkcxH2C2EM/viewer?f=5)
+I developed a general idea about how I wanted my data modeling to be in a simple [jamboard document](https://jamboard.google.com/d/1P-4nCIT4J0eBcKg9AAa4y0nALJxTdqozpYkcxH2C2EM/viewer?f=5).  
 The data used was get from a [free data set](https://github.com/ozlerhakan/mongodb-json-files/blob/master/datasets/books.json) and it was transformed and enriched with the required information to develop this project. 
 
 ## Installation & setup development mode
