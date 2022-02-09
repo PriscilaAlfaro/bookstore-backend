@@ -129,7 +129,7 @@ salesOrderRouter.get('/orderConfirmation/:klarnaOrderId', async (req, res) => {
 
             const cart = await Carts.find({ klarnaOrderId: klarnaOrderId });
 
-            const base64Secrets = Buffer.from(process.env.KARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
+            const base64Secrets = Buffer.from(process.env.KLARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
             const options = {
                 method: 'GET',
                 headers: {
@@ -242,7 +242,7 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
                     }
                 }
 
-                const base64Secrets = Buffer.from(process.env.KARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
+                const base64Secrets = Buffer.from(process.env.KLARNA_USERNAME + ':' + process.env.KLARNA_PASSWORD).toString('base64');
 
                 const options = {
                     method: 'POST',
