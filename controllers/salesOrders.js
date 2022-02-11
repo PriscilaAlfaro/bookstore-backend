@@ -236,8 +236,8 @@ salesOrderRouter.post('/checkout/:userId', async (req, res) => {
                     order_lines: itemsInfo,
                     merchant_urls: {
                         terms: "https://www.example.com/terms.html",
-                        checkout: "http://localhost:3000/payment",
-                        confirmation: "http://localhost:3000/paymentConfirmation",
+                        checkout: "https://bookstore-project-fronted.netlify.app//payment",
+                        confirmation: "https://bookstore-project-fronted.netlify.app/paymentConfirmation",
                         push: "https://www.example.com/api/push"
                     }
                 }
